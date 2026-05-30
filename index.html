@@ -353,6 +353,50 @@ body {
 .install-tip.show { display: flex; }
 .install-close { background: none; border: none; color: var(--cyan); cursor: pointer; font-size: 1rem; flex-shrink: 0; }
 
+/* ── GENERATE TOPIC ── */
+.gen-box {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 14px; margin-bottom: 16px;
+}
+.gen-label { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; font-weight: 600; }
+.gen-row { display: flex; gap: 8px; }
+.gen-in {
+  flex: 1; padding: 10px 13px; border: 1px solid var(--border); border-radius: 8px;
+  font-family: var(--sans); font-size: 0.82rem; background: var(--surface);
+  color: var(--text); outline: none; transition: border-color 0.2s; min-height: 42px;
+}
+.gen-in:focus { border-color: var(--blue); }
+.gen-in::placeholder { color: var(--muted); }
+.gen-btn {
+  padding: 10px 16px; background: linear-gradient(135deg, var(--blue), var(--cyan));
+  color: white; border: none; border-radius: 8px; cursor: pointer;
+  font-family: var(--sans); font-size: 0.72rem; font-weight: 600;
+  min-height: 42px; white-space: nowrap; transition: opacity 0.2s;
+}
+.gen-btn:hover { opacity: 0.9; }
+.gen-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.gen-status { font-size: 0.68rem; color: var(--muted); margin-top: 8px; min-height: 16px; }
+.gen-status.ok { color: var(--green); }
+.gen-status.err { color: var(--red); }
+
+/* ── MASTERED ── */
+.mastered-toggle {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
+  font-size: 0.7rem; color: var(--muted); cursor: pointer; user-select: none;
+}
+.mastered-toggle input { accent-color: var(--blue); width: 14px; height: 14px; }
+.mastered-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 9px; border-radius: 10px; font-size: 0.6rem; font-weight: 600;
+  background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.4);
+  color: var(--green); cursor: pointer; transition: all 0.2s; margin-left: auto;
+}
+.mastered-badge.is-mastered { background: rgba(16,185,129,0.3); }
+.exp-mastered { opacity: 0.4; position: relative; }
+.exp-mastered::after { content: '✓ MASTERED'; position: absolute; top: 10px; right: 10px; font-size: 0.6rem; font-weight: 700; color: var(--green); background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.4); padding: 3px 8px; border-radius: 6px; }
+.ai-generated-card { border-color: rgba(139,92,246,0.4); }
+.ai-generated-card::before { content: '✨ AI Generated'; position: absolute; top: 8px; right: 8px; font-size: 0.55rem; font-weight: 600; color: var(--purple); background: rgba(139,92,246,0.15); border: 1px solid rgba(139,92,246,0.3); padding: 2px 7px; border-radius: 4px; }
+
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: var(--surface); }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
@@ -389,6 +433,24 @@ body {
 <!-- EXPLAINERS -->
 <div class="panel" id="panel-learn">
   <div class="filter-row" id="filterRow"></div>
+
+  <!-- Generate new topic -->
+  <div class="gen-box">
+    <div class="gen-label">✨ Generate a New Topic</div>
+    <div class="gen-row">
+      <input class="gen-in" id="genTopicIn" placeholder="e.g. Azure OpenAI, LangChain, Zero Trust…" onkeydown="if(event.key==='Enter')generateTopic()">
+      <button class="gen-btn" id="genTopicBtn" onclick="generateTopic()">Generate</button>
+    </div>
+    <div class="gen-status" id="genStatus"></div>
+  </div>
+
+  <!-- Mastered toggle -->
+  <label class="mastered-toggle">
+    <input type="checkbox" id="showMastered" onchange="renderExplainers()" checked>
+    Show mastered topics
+    <span id="masteredCount" style="font-size:0.62rem;color:var(--green)"></span>
+  </label>
+
   <div id="explainerList"></div>
 </div>
 
@@ -776,6 +838,112 @@ const EXPLAINERS = [
     analogy:'A system prompt is like an employee handbook for your AI — it defines what the role is, what\'s in scope, and how to behave.',
     visual:'system-prompt-visual',
   },
+  // NEW TOPICS
+  {
+    id:'azure-openai', module:'ai-concepts', tag:'AI Concepts', tagColor:'#f59e0b',
+    title:'Azure OpenAI vs OpenAI API',
+    text:'Azure OpenAI Service provides access to OpenAI models (GPT-4, DALL-E, Whisper) through Azure infrastructure — giving enterprise security, compliance, and SLAs that the direct OpenAI API doesn\'t offer.',
+    points:[
+      'Same models, different hosting: Azure hosts OpenAI models in your region',
+      'Data privacy: your data doesn\'t train OpenAI models when using Azure OpenAI',
+      'Enterprise compliance: SOC2, ISO 27001, HIPAA, FedRAMP support',
+      'Private endpoints: keep traffic within your Azure VNet',
+      'Azure RBAC: use existing Azure AD to control model access',
+      'Content filtering: configurable safety filters on inputs and outputs'
+    ],
+    analogy:'Same coffee, different café — Azure OpenAI is OpenAI\'s models served in Microsoft\'s enterprise-grade kitchen with all your compliance certifications.',
+    visual:'ms-copilot-flow',
+  },
+  {
+    id:'zero-trust-ai', module:'ai-concepts', tag:'AI Concepts', tagColor:'#f59e0b',
+    title:'Zero Trust Principles in AI Systems',
+    text:'Zero Trust — "never trust, always verify" — applies directly to enterprise AI deployments. Every AI request, data access, and model output should be authenticated, authorized, and audited.',
+    points:[
+      'Identity-first: every Copilot user request authenticated via Azure AD',
+      'Least privilege: Copilot only accesses data the user is already permitted to see',
+      'Assume breach: log all AI interactions for audit and anomaly detection',
+      'Verify explicitly: validate AI-generated outputs before acting on them',
+      'Microsegmentation: separate AI workloads from core production systems',
+      'Policy enforcement: use Azure Policy and Defender for AI workload security'
+    ],
+    analogy:'Your AI is a new contractor — they get a badge, but only to the floors they need. Every door they open is logged. Zero Trust applies the same way.',
+    visual:'function-calling-flow',
+  },
+  {
+    id:'langchain', module:'agents', tag:'AI Agents', tagColor:'#10b981',
+    title:'LangChain — Agent Framework',
+    text:'LangChain is the most widely-used framework for building LLM applications and agents. It provides abstractions for chains, tools, memory, and retrievers — letting you compose complex AI workflows in code.',
+    points:[
+      'Chains: sequence of LLM calls and transformations linked together',
+      'Tools: pre-built integrations — web search, Python REPL, SQL, APIs',
+      'Agents: LLM that dynamically decides which tools to invoke and in what order',
+      'Memory: conversation history management (buffer, summary, vector-based)',
+      'LCEL (LangChain Expression Language): declarative chain composition',
+      'LangSmith: tracing and observability for LangChain apps'
+    ],
+    analogy:'LangChain is like a Swiss Army knife for AI developers — it packages the common patterns so you don\'t build from scratch every time.',
+    visual:'agent-loop',
+  },
+  {
+    id:'copilot-governance', module:'copilot-ms', tag:'Microsoft Copilot', tagColor:'#0078d4',
+    title:'Governing Microsoft Copilot in Enterprise',
+    text:'Deploying Copilot across an enterprise requires governance controls to manage cost, data exposure, compliance, and responsible AI use. IT leaders need a clear framework before wide rollout.',
+    points:[
+      'License management: Copilot M365 licenses assigned per user, not per org',
+      'Data oversharing: run SharePoint Access Reviews before enabling Copilot — it surfaces everything the user can access',
+      'Sensitivity labels: Copilot respects M365 sensitivity labels — classify data first',
+      'Copilot usage reports: Microsoft 365 admin center shows adoption and usage metrics',
+      'Prompt history: discoverable under eDiscovery — treat as business records',
+      'Copilot Studio governance: restrict who can create and publish custom agents'
+    ],
+    analogy:'Giving everyone Copilot without governance is like giving every employee a master key — you need to know what doors they can already open before you amplify their access.',
+    visual:'graph-connections',
+  },
+  {
+    id:'semantic-kernel', module:'agents', tag:'AI Agents', tagColor:'#10b981',
+    title:'Semantic Kernel — Microsoft\'s Agent SDK',
+    text:'Semantic Kernel (SK) is Microsoft\'s open-source SDK for building AI agents and Copilots in .NET, Python, and Java. It\'s the engine under the hood of Copilot Studio and many Microsoft AI products.',
+    points:[
+      'Plugins: reusable functions the AI can invoke (equivalent to LangChain tools)',
+      'Planner: SK component that auto-generates a plan to achieve a goal using available plugins',
+      'Memory: semantic memory store using embeddings for context retrieval',
+      'Process Framework: orchestrate multi-step business workflows with AI',
+      'Used in Copilot Studio under the hood — understanding SK helps you debug custom agents',
+      'Integrates with Azure OpenAI, OpenAI, Hugging Face, and local models'
+    ],
+    analogy:'If LangChain is the Python-first framework, Semantic Kernel is the .NET-first framework — both build the same thing, different native environments.',
+    visual:'multi-agent-diagram',
+  },
+  {
+    id:'model-context-protocol', module:'agents', tag:'AI Agents', tagColor:'#10b981',
+    title:'MCP — Model Context Protocol',
+    text:'MCP (Model Context Protocol) is an open standard by Anthropic that standardizes how AI models connect to external tools and data sources. Think of it as USB-C for AI integrations.',
+    points:[
+      'Standardizes tool/resource definitions so any MCP-compatible model can use any MCP server',
+      'MCP Server: exposes tools, resources, and prompts over a standard protocol',
+      'MCP Client: the AI application that connects to MCP servers',
+      'Transports: stdio (local), HTTP/SSE (remote) — both supported',
+      'Growing ecosystem: GitHub, Slack, databases, browsers already have MCP servers',
+      'Replaces bespoke function-calling integrations with a universal standard'
+    ],
+    analogy:'Before USB-C, every device had a different connector. MCP is the USB-C for AI — one standard that works with every model and every tool.',
+    visual:'function-calling-flow',
+  },
+  {
+    id:'cf-service-broker', module:'cloudfoundry', tag:'Cloud Foundry', tagColor:'#0891b2',
+    title:'CF Service Brokers & Service Marketplace',
+    text:'Service Brokers are the integration layer that connects CF applications to backing services (databases, message queues, AI APIs) through a standardized Open Service Broker API.',
+    points:[
+      'Open Service Broker API (OSBAPI): standard for provisioning managed services',
+      'cf marketplace: lists all available services your platform team has registered',
+      'cf create-service: provisions a service instance (e.g. PostgreSQL database)',
+      'cf bind-service: injects service credentials into app as VCAP_SERVICES env var',
+      'Examples: databases (MySQL, PostgreSQL), message queues (RabbitMQ), AI services (Azure OpenAI)',
+      'Custom brokers: your platform team can register any API as a CF service'
+    ],
+    analogy:'The service marketplace is like a company cafeteria — your team curates what\'s available, developers just order what they need without provisioning infrastructure themselves.',
+    visual:'cf-architecture',
+  },
 ];
 
 const CONCEPTS = [
@@ -828,6 +996,10 @@ let conceptsLearned = parseInt(localStorage.getItem('tlConcepts') || '0');
 let quizData = { qs: [], idx: 0, correct: 0 };
 let activeModule = 'all';
 let activeConceptModule = 'all';
+let masteredTopics = JSON.parse(localStorage.getItem('tlMastered') || '[]');
+let aiGeneratedExplainers = JSON.parse(localStorage.getItem('tlAIExplainers') || '[]');
+// Merge AI-generated into EXPLAINERS on load
+aiGeneratedExplainers.forEach(e => { if (!EXPLAINERS.find(x => x.id === e.id)) EXPLAINERS.push(e); });
 
 const today = new Date().toDateString();
 const lastDay = localStorage.getItem('tlLastDay');
@@ -1189,27 +1361,62 @@ function renderExplainers() {
     pill.onclick = () => { activeModule = m.id; renderExplainers(); };
     filterRow.appendChild(pill);
   });
+  // AI-generated pill
+  if (aiGeneratedExplainers.length > 0) {
+    const aiPill = document.createElement('button');
+    aiPill.className = 'filter-pill' + (activeModule === 'ai-generated' ? ' active' : '');
+    aiPill.textContent = '✨ My Topics';
+    aiPill.style.borderColor = activeModule === 'ai-generated' ? '#8b5cf6' : '';
+    aiPill.style.color = activeModule === 'ai-generated' ? '#8b5cf6' : '';
+    aiPill.onclick = () => { activeModule = 'ai-generated'; renderExplainers(); };
+    filterRow.appendChild(aiPill);
+  }
+
+  const showMastered = document.getElementById('showMastered')?.checked ?? true;
+  const masteredEl = document.getElementById('masteredCount');
+  if (masteredEl) masteredEl.textContent = masteredTopics.length ? `· ${masteredTopics.length} mastered` : '';
 
   const list = document.getElementById('explainerList');
   list.innerHTML = '';
-  const filtered = activeModule === 'all' ? EXPLAINERS : EXPLAINERS.filter(e => e.module === activeModule);
+
+  let filtered;
+  if (activeModule === 'ai-generated') {
+    filtered = aiGeneratedExplainers;
+  } else {
+    filtered = activeModule === 'all' ? EXPLAINERS : EXPLAINERS.filter(e => e.module === activeModule);
+  }
+  if (!showMastered) filtered = filtered.filter(e => !masteredTopics.includes(e.id));
+
+  if (filtered.length === 0) {
+    list.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--muted);font-size:0.82rem">
+      ${showMastered ? 'No topics yet.' : '🎉 You\'ve mastered all topics in this module! Generate new ones above or toggle "Show mastered" to review.'}</div>`;
+    return;
+  }
 
   filtered.forEach(exp => {
     const m = MODULES.find(mod => mod.id === exp.module);
+    const isMastered = masteredTopics.includes(exp.id);
+    const isAI = !!exp.aiGenerated;
     const card = document.createElement('div');
-    card.className = 'explainer-card';
+    card.className = 'explainer-card' + (isMastered ? ' exp-mastered' : '') + (isAI ? ' ai-generated-card' : '');
+    card.style.position = 'relative';
 
     // Visual area
     const visual = document.createElement('div');
     visual.className = 'exp-visual';
     visual.style.background = `linear-gradient(135deg, ${exp.tagColor}11, var(--surface))`;
-    renderVisual(exp.visual, visual);
+    renderVisual(exp.visual || 'default', visual);
 
     // Body
     const body = document.createElement('div');
     body.className = 'exp-body';
     body.innerHTML = `
-      <span class="exp-tag" style="background:${exp.tagColor}22;color:${exp.tagColor};border:1px solid ${exp.tagColor}44">${exp.tag}</span>
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:10px">
+        <span class="exp-tag" style="background:${exp.tagColor}22;color:${exp.tagColor};border:1px solid ${exp.tagColor}44">${exp.tag}</span>
+        <button class="mastered-badge ${isMastered?'is-mastered':''}" onclick="toggleMastered('${exp.id}')" style="flex-shrink:0">
+          ${isMastered ? '✓ Mastered' : '☆ Mark Mastered'}
+        </button>
+      </div>
       <div class="exp-title">${exp.title}</div>
       <div class="exp-text">${exp.text}</div>
       <div class="exp-keypoints">
@@ -1218,13 +1425,102 @@ function renderExplainers() {
       <div class="concept-analogy" style="margin-top:14px">${exp.analogy}</div>
       <div class="exp-actions">
         <button class="exp-btn exp-btn-primary" onclick="addXP(10)" style="background:${exp.tagColor}">✓ Got it! +10 XP</button>
-        <button class="exp-btn exp-btn-secondary" onclick="qp('Explain in more depth: ${exp.title.replace(/'/g,"\\'")}')">Ask Tutor</button>
+        <button class="exp-btn exp-btn-secondary" onclick="qp('Go deeper on: ${exp.title.replace(/'/g,"\\'")}')">Ask Tutor</button>
       </div>`;
 
     card.appendChild(visual);
     card.appendChild(body);
     list.appendChild(card);
   });
+}
+
+function toggleMastered(id) {
+  if (masteredTopics.includes(id)) {
+    masteredTopics = masteredTopics.filter(m => m !== id);
+  } else {
+    masteredTopics.push(id);
+    addXP(25);
+  }
+  localStorage.setItem('tlMastered', JSON.stringify(masteredTopics));
+  renderExplainers();
+}
+
+// ─── AI TOPIC GENERATOR ───────────────────────────────────────────────────────
+async function generateTopic() {
+  const inp = document.getElementById('genTopicIn');
+  const topic = inp.value.trim();
+  if (!topic) { setGenStatus('Enter a topic first', 'err'); return; }
+
+  const btn = document.getElementById('genTopicBtn');
+  btn.disabled = true; btn.textContent = 'Generating…';
+  setGenStatus('Asking Claude to generate an explainer…', '');
+
+  // Pick best matching module
+  const moduleGuess = guessModule(topic);
+  const mod = MODULES.find(m => m.id === moduleGuess) || MODULES[4];
+
+  const prompt = `You are a technical educator. Generate a structured explainer for the concept: "${topic}".
+The audience is a senior IT/platform manager who understands enterprise infrastructure deeply.
+Return ONLY valid JSON (no markdown, no extra text) with this exact structure:
+{
+  "title": "clear title for the concept",
+  "text": "2-3 sentence explanation, technical but clear",
+  "points": ["key point 1", "key point 2", "key point 3", "key point 4", "key point 5"],
+  "analogy": "one memorable real-world analogy that makes this click",
+  "tag": "${mod.name}",
+  "tagColor": "${mod.color}"
+}`;
+
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt })
+    });
+    const data = await res.json();
+    const raw = data.content?.[0]?.text || '';
+    const parsed = JSON.parse(raw.replace(/```json|```/g, '').trim());
+
+    const newExp = {
+      id: 'ai-' + Date.now(),
+      module: moduleGuess,
+      tag: parsed.tag || mod.name,
+      tagColor: parsed.tagColor || mod.color,
+      title: parsed.title,
+      text: parsed.text,
+      points: parsed.points,
+      analogy: parsed.analogy,
+      visual: 'default',
+      aiGenerated: true,
+    };
+
+    aiGeneratedExplainers.push(newExp);
+    EXPLAINERS.push(newExp);
+    localStorage.setItem('tlAIExplainers', JSON.stringify(aiGeneratedExplainers));
+
+    inp.value = '';
+    setGenStatus(`✓ "${parsed.title}" added!`, 'ok');
+    activeModule = 'ai-generated';
+    renderExplainers();
+    addXP(15);
+  } catch (e) {
+    setGenStatus('Could not generate — check connection and try again.', 'err');
+  }
+  btn.disabled = false; btn.textContent = 'Generate';
+}
+
+function guessModule(topic) {
+  const t = topic.toLowerCase();
+  if (t.match(/copilot|m365|teams|outlook|graph|sharepoint|office|copilot studio/)) return 'copilot-ms';
+  if (t.match(/github|git|code|ide|pr|pull request|devops|vscode/)) return 'copilot-gh';
+  if (t.match(/agent|langchain|autogen|crewai|orchestrat|tool call|function call/)) return 'agents';
+  if (t.match(/cloud foundry|bosh|diego|cf |buildpack|uaa|pcf|tanzu/)) return 'cloudfoundry';
+  if (t.match(/prompt|few.shot|chain.of.thought|system prompt|rag|instruct/)) return 'prompting';
+  return 'ai-concepts';
+}
+
+function setGenStatus(msg, cls) {
+  const el = document.getElementById('genStatus');
+  if (el) { el.textContent = msg; el.className = 'gen-status ' + cls; }
 }
 
 // ─── CONCEPTS RENDERER ───────────────────────────────────────────────────────
